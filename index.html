@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+<div id="showForm">
+    <form id="myForm">
+        <input name="Email" type="email" placeholder="Email" required>
+        <input name="Name" type="text" placeholder="Name" required>
+        <input name="Number" type="tel" placeholder="Phone Number" required>
+        <input name="Color" type="color" placeholder="Color" required>
+        <div>
+            <input type="range" id="cowbell" name="Range" min="0" max="100" value="0" step="10">
+            <label for="cowbell">Range</label>
+        </div>
+
+        <label for="pet-select">Choose a pet:</label>
+
+        <select name="pets" id="pet-select">
+            <option value="">Please choose an option</option>
+            <option value="dog">Dog</option>
+            <option value="cat">Cat</option>
+            <option value="hamster">Hamster</option>
+            <option value="parrot">Parrot</option>
+            <option value="spider">Spider</option>
+            <option value="goldfish">Goldfish</option>
+        </select>
+        <input type="file" name="image" id="image" multiple>
+        <input type="reset" value="Reset">
+        <input type="submit" value="提交">
+    </form>
+</div>
+<script>
+$(document).ready(function () {
+  $('#myForm').submit(function (e) {
+    e.preventDefault(); // 阻止表单默认提交行为
+    var formData = new FormData(this); // 创建一个表单数据对象
+    // 使用 jQuery.each() 函数遍历文件列表，并执行上传操作
+    $.each($('#image')[0].files, function (i, file) {
+      formData.append('image[' + i + ']', file); // 添加文件到表单数据对象
+    });
+    // 使用 jQuery.ajax() 函数上传文件到 Imgur API
+    $.ajax({
+      url: 'https://api.imgur.com/3/image',
+      type: 'POST',
+      headers: {
+        Authorization: '6be4b639360acf0' // 用你自己的客户端 ID 替换 YOUR_CLIENT_ID
+      },
+      data: formData,
+      processData: false, // 不处理表单数据对象
+      contentType: false, // 不设置请求头的 Content-Type
+      success: function (data) {
+        // 获取 Imgur API 返回的 URL，并将表单数据和 URL 提交到 Google Apps Script
+        var imageUrl = data.data.link;
+        formData.append('imageUrl', imageUrl);
+        $.ajax({
+          url: 'https://script.google.com/macros/s/AKfycbxjNVS-7kP9pB5ue5v8RAq2ZTWaJBpuUiq8jYj3Vhv3APncuQVJkyYZwBFIkl4vy_IC/exec',
+          type: 'POST',
+          data: formData,
+          processData: false, // 不处理表单数据对象
+          contentType: false, // 不设置请求头的 Content-Type
+          success: function (response) {
+            alert('上传成功！');
+          },
+          error: function (jqXHR, textStatus, errorThrown) {
+            alert('上传失败！请稍后重试。');
+            console.error(textStatus + " " + errorThrown);
+          }
+        });
+      },
+      error: function (jqXHR, textStatus, errorThrown) {
+        alert('上传失败！请稍后重试。');
+        console.error(textStatus + " " + errorThrown);
+      }
+    });
+  });
+});
+
+
+</script>
